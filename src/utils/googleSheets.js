@@ -91,24 +91,34 @@ export async function addExpenseToSheet(expense) {
   const apiKey = getApiKey();
   const sheetId = getSheetId();
   
-  console.log('Adding expense with:', { apiKey: apiKey ? '***' : 'missing', sheetId: sheetId || 'missing' });
+  console.log('Adding expense with:', { 
+    apiKey: apiKey ? `${apiKey.substring(0, 10)}...` : 'missing', 
+    sheetId: sheetId || 'missing',
+    expense: expense
+  });
+  
+  const requestBody = {
+    apiKey: apiKey,
+    sheetId: sheetId,
+    values: [
+      expense.id,
+      expense.paidBy,
+      expense.amount,
+      expense.category,
+      expense.description,
+      expense.date
+    ]
+  };
+  
+  console.log('Request body:', requestBody);
   
   const res = await fetch(PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      apiKey: apiKey,
-      sheetId: sheetId,
-      values: [
-        expense.id,
-        expense.paidBy,
-        expense.amount,
-        expense.category,
-        expense.description,
-        expense.date
-      ]
-    })
+    body: JSON.stringify(requestBody)
   });
+  
+  console.log('Response status:', res.status);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
