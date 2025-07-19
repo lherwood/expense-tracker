@@ -185,14 +185,16 @@ const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
                   <span className="text-lg font-bold text-gray-900">R{expense.amount.toFixed(2)}</span>
                   <button
                     onClick={() => {
+                      console.log('Delete button clicked for expense:', expense.id);
                       if (window.confirm('Are you sure you want to delete this expense?')) {
+                        console.log('Delete confirmed, calling onDeleteExpense');
                         onDeleteExpense(expense.id);
                       }
                     }}
-                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                    className="p-2 bg-red-500 text-white hover:bg-red-700 rounded-lg transition-colors"
                     title="Delete expense"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
