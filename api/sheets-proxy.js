@@ -16,6 +16,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: apiKey and sheetId are required' });
   }
 
+  // First, let's test if we can access the sheet at all
+  const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}?key=${apiKey}`;
+  console.log('Testing sheet access with:', testUrl);
+  
+  try {
+    const testRes = await fetch(testUrl);
+    const testData = await testRes.json();
+    console.log('Sheet access test result:', { status: testRes.status, data: testData });
+    
+    if (!testRes.ok) {
+      return res.status(testRes.status).json({ 
+        error: `Cannot access sheet: ${testData.error?.message || 'Unknown error'}`,
+        details: testData
+      });
+    }
+  } catch (error) {
+    console.log('Sheet access test failed:', error);
+    return res.status(500).json({ error: 'Failed to test sheet access' });
+  }
+
   if (req.method === 'GET') {
     // Handle GET request for fetching expenses
     const { range } = req.query;
