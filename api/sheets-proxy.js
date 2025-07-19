@@ -5,7 +5,14 @@ export default async function handler(req, res) {
   const apiKey = req.method === 'GET' ? req.query.apiKey : req.body.apiKey;
   const sheetId = req.method === 'GET' ? req.query.sheetId : req.body.sheetId;
 
+  console.log('Proxy received request:', {
+    method: req.method,
+    apiKey: apiKey ? `${apiKey.substring(0, 10)}...` : 'missing',
+    sheetId: sheetId || 'missing'
+  });
+
   if (!apiKey || !sheetId) {
+    console.log('Missing required fields');
     return res.status(400).json({ error: 'Missing required fields: apiKey and sheetId are required' });
   }
 
@@ -16,9 +23,13 @@ export default async function handler(req, res) {
     
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetRange}?key=${apiKey}`;
     
+    console.log('Making GET request to:', url);
+    
     try {
       const googleRes = await fetch(url);
       const data = await googleRes.json();
+
+      console.log('Google Sheets GET response:', { status: googleRes.status, data });
 
       if (!googleRes.ok) {
         return res.status(googleRes.status).json({ error: data.error || 'Google Sheets error' });
@@ -26,6 +37,7 @@ export default async function handler(req, res) {
 
       return res.status(200).json(data);
     } catch (error) {
+      console.log('GET request failed:', error);
       return res.status(500).json({ error: 'Failed to fetch from Google Sheets' });
     }
   }
@@ -33,6 +45,8 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     // Handle POST request for adding expenses or headers
     const { values, action } = req.body;
+
+    console.log('POST request details:', { action, values });
 
     if (!values) {
       return res.status(400).json({ error: 'Missing values' });
@@ -51,6 +65,9 @@ export default async function handler(req, res) {
       body = JSON.stringify({ values: [values] });
     }
 
+    console.log('Making POST request to:', url);
+    console.log('POST request body:', body);
+
     try {
       const googleRes = await fetch(url, {
         method: 'POST',
@@ -60,12 +77,15 @@ export default async function handler(req, res) {
 
       const data = await googleRes.json();
 
+      console.log('Google Sheets POST response:', { status: googleRes.status, data });
+
       if (!googleRes.ok) {
         return res.status(googleRes.status).json({ error: data.error || 'Google Sheets error' });
       }
 
       return res.status(200).json({ success: true, data });
     } catch (error) {
+      console.log('POST request failed:', error);
       return res.status(500).json({ error: 'Failed to write to Google Sheets' });
     }
   }
