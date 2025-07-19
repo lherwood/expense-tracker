@@ -47,16 +47,31 @@ export async function fetchExpenses() {
   }
   
   const data = await res.json();
-  if (!data.values) return [];
+  console.log('Raw data from Apps Script:', data);
   
-  return data.values.map(row => ({
-    id: row[0],
-    paidBy: row[1],
-    amount: parseFloat(row[2]),
-    category: row[3],
-    description: row[4],
-    date: row[5],
-  }));
+  if (!data.values) {
+    console.log('No values found in response, returning empty array');
+    return [];
+  }
+  
+  console.log('Raw values from Apps Script:', data.values);
+  
+  const expenses = data.values.map((row, index) => {
+    console.log(`Processing row ${index}:`, row);
+    const expense = {
+      id: row[0],
+      paidBy: row[1],
+      amount: parseFloat(row[2]),
+      category: row[3],
+      description: row[4],
+      date: row[5],
+    };
+    console.log(`Processed expense ${index}:`, expense);
+    return expense;
+  });
+  
+  console.log('Final processed expenses:', expenses);
+  return expenses;
 }
 
 // Add a new expense to the sheet using Apps Script proxy
