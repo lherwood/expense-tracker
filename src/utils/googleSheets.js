@@ -60,8 +60,16 @@ export async function fetchExpenses() {
   console.log('Total rows from Apps Script:', data.values.length);
   console.log('Rows after slice(1):', data.values.slice(1));
   
-  const dataRows = data.values.slice(1).filter((row, index) => {
-    console.log(`=== Checking row ${index} ===`);
+  // Check if the first row is actually headers
+  const firstRow = data.values[0];
+  console.log('First row:', firstRow);
+  const isFirstRowHeaders = firstRow && firstRow[0] === 'id' && firstRow[1] === 'paidBy' && firstRow[2] === 'amount';
+  console.log('Is first row headers:', isFirstRowHeaders);
+  
+  // Start from the appropriate row (skip headers if present)
+  const startIndex = isFirstRowHeaders ? 1 : 0;
+  const dataRows = data.values.slice(startIndex).filter((row, index) => {
+    console.log(`=== Checking row ${index} (original index: ${startIndex + index}) ===`);
     console.log('Row:', row);
     console.log('Row type:', typeof row);
     console.log('Row length:', row ? row.length : 'null');
