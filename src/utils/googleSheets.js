@@ -57,8 +57,11 @@ export async function fetchExpenses() {
   console.log('Raw values from Apps Script:', data.values);
   
   // Skip the header row (first row) and filter out empty rows
-  const dataRows = data.values.slice(1).filter(row => {
-    console.log('=== Checking row ===');
+  console.log('Total rows from Apps Script:', data.values.length);
+  console.log('Rows after slice(1):', data.values.slice(1));
+  
+  const dataRows = data.values.slice(1).filter((row, index) => {
+    console.log(`=== Checking row ${index} ===`);
     console.log('Row:', row);
     console.log('Row type:', typeof row);
     console.log('Row length:', row ? row.length : 'null');
@@ -75,7 +78,7 @@ export async function fetchExpenses() {
     
     const isValid = hasContent && hasNonEmptyCells && isNotHeader;
     console.log('Row is valid:', isValid);
-    console.log('=== End checking row ===');
+    console.log(`=== End checking row ${index} ===`);
     
     return isValid;
   });
