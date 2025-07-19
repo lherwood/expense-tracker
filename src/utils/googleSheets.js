@@ -19,30 +19,70 @@ function buildUrl(path, params = {}) {
   return url.toString();
 }
 
-// Ensure headers exist (if sheet is blank)
+// Ensure headers exist (if sheet is blank) using Vercel proxy
 export async function ensureSheetHeaders() {
-  const url = buildUrl(`/values/${SHEET_RANGE}!A1:F1`, { valueInputOption: 'RAW' });
-  const res = await fetch(url.replace('/values/', '/values:append'), {
+  const apiKey = getApiKey();
+  const sheetId = getSheetId();
+  
+  // First try to read headers to see if they exist
+  const readUrl = `${PROXY_URL}?apiKey=${encodeURIComponent(apiKey)}&sheetId=${encodeURIComponent(sheetId)}&range=Sheet1!A1:F1`;
+  
+  try {
+    const readRes = await fetch(readUrl, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (readRes.ok) {
+      const data = await readRes.json();
+      if (data.values && data.values.length > 0) {
+        // Headers already exist, no need to add them
+        return;
+      }
+    }
+  } catch (error) {
+    // If reading fails, try to add headers
+  }
+  
+  // Add headers if they don't exist
+  const addUrl = `${PROXY_URL}`;
+  const res = await fetch(addUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      values: [HEADERS],
-      range: `${SHEET_RANGE}!A1:F1`,
-      majorDimension: 'ROWS',
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
+      apiKey: apiKey,
+      sheetId: sheetId,
+      values: HEADERS,
+      action: 'addHeaders'
     })
   });
+  
   // Ignore errors if already exists
+  if (!res.ok) {
+    console.log('Headers may already exist or failed to add');
+  }
 }
 
-// Fetch all expenses from the sheet
+// Fetch all expenses from the sheet using Vercel proxy
 export async function fetchExpenses() {
-  const url = buildUrl(`/values/${SHEET_RANGE}!A2:F1000`);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch expenses from Google Sheets');
+  const apiKey = getApiKey();
+  const sheetId = getSheetId();
+  
+  const url = `${PROXY_URL}?apiKey=${encodeURIComponent(apiKey)}&sheetId=${encodeURIComponent(sheetId)}`;
+  
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to fetch expenses via proxy');
+  }
+  
   const data = await res.json();
   if (!data.values) return [];
+  
   return data.values.map(row => ({
     id: row[0],
     paidBy: row[1],
