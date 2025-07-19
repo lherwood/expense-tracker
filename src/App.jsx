@@ -26,16 +26,6 @@ const App = () => {
       setLoading(true);
       setError('');
       
-      // Check if API key and Sheet ID are set
-      const apiKey = localStorage.getItem('googleApiKey');
-      const sheetId = localStorage.getItem('googleSheetId');
-      
-      if (!apiKey || !sheetId) {
-        setError('Please set your Google Sheets API key and Sheet ID in Settings first.');
-        setLoading(false);
-        return;
-      }
-      
       try {
         await ensureSheetHeaders();
         const data = await fetchExpenses();

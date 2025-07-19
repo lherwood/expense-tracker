@@ -1,17 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Download, Upload, Trash2, Info } from 'lucide-react';
+import { ArrowLeft, Download, Trash2, Info, ExternalLink } from 'lucide-react';
 
 const SettingsScreen = ({ onBack }) => {
-  const [apiKey, setApiKey] = useState(localStorage.getItem('googleApiKey') || '');
-  const [sheetId, setSheetId] = useState(localStorage.getItem('googleSheetId') || '');
   const [message, setMessage] = useState('');
-
-  const saveApiKey = () => {
-    localStorage.setItem('googleApiKey', apiKey);
-    localStorage.setItem('googleSheetId', sheetId);
-    setMessage('Google Sheets settings saved successfully!');
-    setTimeout(() => setMessage(''), 3000);
-  };
 
   const exportToCSV = () => {
     const expenses = JSON.parse(localStorage.getItem('expenseData')) || [];
@@ -75,41 +66,21 @@ const SettingsScreen = ({ onBack }) => {
       <div className="space-y-6">
         {/* Google Sheets Integration */}
         <div className="bg-white shadow rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Google Sheets Integration</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">📊 Google Sheets Integration</h2>
           <p className="text-gray-600 mb-4">
-            Connect your expense tracker to Google Sheets for automatic syncing.
+            Your expense data is automatically synced with Google Sheets using Google Apps Script.
+            No API keys or configuration needed!
           </p>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Google Sheets API Key
-              </label>
-              <input
-                type="password"
-                placeholder="Enter your API key"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Google Sheet ID
-              </label>
-              <input
-                type="text"
-                placeholder="Enter your Google Sheet ID"
-                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                value={sheetId}
-                onChange={(e) => setSheetId(e.target.value)}
-              />
-            </div>
-            <button
-              onClick={saveApiKey}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            <a
+              href="https://docs.google.com/spreadsheets/d/1lRn0CSCBpGA_YTDF4-Zby-AToqqPj0MjvkrWNqvGwfk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              Save Google Sheets Settings
-            </button>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              View Google Sheet
+            </a>
           </div>
         </div>
 
@@ -157,7 +128,14 @@ const SettingsScreen = ({ onBack }) => {
               <Info className="w-5 h-5 text-gray-400 mr-3" />
               <div>
                 <p className="font-medium text-gray-900">Storage</p>
-                <p className="text-sm text-gray-500">Local Browser Storage</p>
+                <p className="text-sm text-gray-500">Google Sheets (Real-time sync)</p>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <Info className="w-5 h-5 text-gray-400 mr-3" />
+              <div>
+                <p className="font-medium text-gray-900">Authentication</p>
+                <p className="text-sm text-gray-500">Google Apps Script</p>
               </div>
             </div>
           </div>
@@ -168,7 +146,7 @@ const SettingsScreen = ({ onBack }) => {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">About</h2>
           <p className="text-gray-600 mb-4">
             This expense tracker helps you monitor your spending habits and stay on top of your finances.
-            All data is stored locally in your browser for privacy.
+            All data is synced with Google Sheets for easy access and sharing.
           </p>
           <p className="text-sm text-gray-500">
             Built with React, Tailwind CSS, and Vite. Deployed on Vercel.

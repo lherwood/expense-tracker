@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey, saveApiKey, message }) => {
+const SettingsModal = ({ isOpen, onClose, message }) => {
   if (!isOpen) return null;
 
   return (
@@ -37,27 +37,10 @@ const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey, saveApiKey, message
           <div className="p-6 space-y-6">
             {/* Google Sheets Integration */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">🔑 Google Sheets Integration</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">📊 Google Sheets Integration</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    API Key
-                  </label>
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter your Google Sheets API key"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
-                  />
-                </div>
-                <button
-                  onClick={saveApiKey}
-                  className="w-full bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-lg hover:from-secondary hover:to-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 font-medium"
-                >
-                  Save API Key
-                </button>
                 <div className="text-sm text-gray-600">
+                  <p className="mb-3">Your expense data is automatically synced with Google Sheets using Google Apps Script.</p>
                   <a 
                     href="https://docs.google.com/spreadsheets/d/1lRn0CSCBpGA_YTDF4-Zby-AToqqPj0MjvkrWNqvGwfk" 
                     target="_blank" 
@@ -87,7 +70,11 @@ const SettingsModal = ({ isOpen, onClose, apiKey, setApiKey, saveApiKey, message
                 </div>
                 <div className="flex justify-between">
                   <span>Storage:</span>
-                  <span className="font-medium">Local Browser</span>
+                  <span className="font-medium">Google Sheets</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sync:</span>
+                  <span className="font-medium">Real-time</span>
                 </div>
               </div>
             </div>
