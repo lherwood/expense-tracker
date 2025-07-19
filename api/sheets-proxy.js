@@ -1,10 +1,12 @@
 // /api/sheets-proxy.js
 
 export default async function handler(req, res) {
-  const { apiKey, sheetId } = req.body || req.query;
+  // Get parameters from either query (GET) or body (POST)
+  const apiKey = req.method === 'GET' ? req.query.apiKey : req.body.apiKey;
+  const sheetId = req.method === 'GET' ? req.query.sheetId : req.body.sheetId;
 
   if (!apiKey || !sheetId) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return res.status(400).json({ error: 'Missing required fields: apiKey and sheetId are required' });
   }
 
   if (req.method === 'GET') {
@@ -14,14 +16,18 @@ export default async function handler(req, res) {
     
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetRange}?key=${apiKey}`;
     
-    const googleRes = await fetch(url);
-    const data = await googleRes.json();
+    try {
+      const googleRes = await fetch(url);
+      const data = await googleRes.json();
 
-    if (!googleRes.ok) {
-      return res.status(googleRes.status).json({ error: data.error || 'Google Sheets error' });
+      if (!googleRes.ok) {
+        return res.status(googleRes.status).json({ error: data.error || 'Google Sheets error' });
+      }
+
+      return res.status(200).json(data);
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to fetch from Google Sheets' });
     }
-
-    return res.status(200).json(data);
   }
 
   if (req.method === 'POST') {
@@ -45,19 +51,23 @@ export default async function handler(req, res) {
       body = JSON.stringify({ values: [values] });
     }
 
-    const googleRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: body,
-    });
+    try {
+      const googleRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body,
+      });
 
-    const data = await googleRes.json();
+      const data = await googleRes.json();
 
-    if (!googleRes.ok) {
-      return res.status(googleRes.status).json({ error: data.error || 'Google Sheets error' });
+      if (!googleRes.ok) {
+        return res.status(googleRes.status).json({ error: data.error || 'Google Sheets error' });
+      }
+
+      return res.status(200).json({ success: true, data });
+    } catch (error) {
+      return res.status(500).json({ error: 'Failed to write to Google Sheets' });
     }
-
-    return res.status(200).json({ success: true, data });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

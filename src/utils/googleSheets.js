@@ -58,6 +58,8 @@ export async function fetchExpenses() {
   const apiKey = getApiKey();
   const sheetId = getSheetId();
   
+  console.log('Fetching expenses with:', { apiKey: apiKey ? '***' : 'missing', sheetId: sheetId || 'missing' });
+  
   const url = `${PROXY_URL}?apiKey=${encodeURIComponent(apiKey)}&sheetId=${encodeURIComponent(sheetId)}`;
   
   const res = await fetch(url, {
@@ -67,6 +69,7 @@ export async function fetchExpenses() {
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
+    console.error('Proxy error response:', errorData);
     throw new Error(errorData.error || 'Failed to fetch expenses via proxy');
   }
   
@@ -85,12 +88,17 @@ export async function fetchExpenses() {
 
 // Add a new expense to the sheet using Vercel proxy
 export async function addExpenseToSheet(expense) {
+  const apiKey = getApiKey();
+  const sheetId = getSheetId();
+  
+  console.log('Adding expense with:', { apiKey: apiKey ? '***' : 'missing', sheetId: sheetId || 'missing' });
+  
   const res = await fetch(PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      apiKey: getApiKey(),
-      sheetId: getSheetId(),
+      apiKey: apiKey,
+      sheetId: sheetId,
       values: [
         expense.id,
         expense.paidBy,
@@ -104,6 +112,7 @@ export async function addExpenseToSheet(expense) {
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
+    console.error('Proxy error response:', errorData);
     throw new Error(errorData.error || 'Failed to add expense via proxy');
   }
   
