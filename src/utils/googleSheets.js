@@ -56,16 +56,26 @@ export async function fetchExpenses() {
   
   console.log('Raw values from Apps Script:', data.values);
   
-  const expenses = data.values.map((row, index) => {
+  // Skip the header row (first row) and filter out empty rows
+  const dataRows = data.values.slice(1).filter(row => 
+    row && row.length > 0 && row.some(cell => cell && cell.toString().trim() !== '')
+  );
+  
+  console.log('Data rows after filtering:', dataRows);
+  
+  const expenses = dataRows.map((row, index) => {
     console.log(`Processing row ${index}:`, row);
+    
+    // Ensure we have all required fields
     const expense = {
-      id: row[0],
-      paidBy: row[1],
-      amount: parseFloat(row[2]),
-      category: row[3],
-      description: row[4],
-      date: row[5],
+      id: row[0] || `temp_${Date.now()}_${index}`,
+      paidBy: row[1] || 'Unknown',
+      amount: row[2] ? parseFloat(row[2]) : 0,
+      category: row[3] || 'Other',
+      description: row[4] || '',
+      date: row[5] || new Date().toISOString().split('T')[0],
     };
+    
     console.log(`Processed expense ${index}:`, expense);
     return expense;
   });
