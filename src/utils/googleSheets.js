@@ -6,6 +6,9 @@ const getSheetId = () => localStorage.getItem('googleSheetId') || '';
 const SHEET_RANGE = 'Sheet1'; // Default sheet/tab name
 const HEADERS = ['id', 'paidBy', 'amount', 'category', 'description', 'date'];
 
+// Vercel proxy URL
+const PROXY_URL = 'https://expense-tracker-zslu.vercel.app/api/sheets-proxy';
+
 // Helper: Build Sheets API URL
 function buildUrl(path, params = {}) {
   const apiKey = getApiKey();
@@ -50,23 +53,29 @@ export async function fetchExpenses() {
   }));
 }
 
-// Add a new expense to the sheet
+// Add a new expense to the sheet using Vercel proxy
 export async function addExpenseToSheet(expense) {
-  const url = buildUrl(`/values/${SHEET_RANGE}!A2:F2:append`, { valueInputOption: 'RAW' });
-  const res = await fetch(url, {
+  const res = await fetch(PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      values: [[
+      apiKey: getApiKey(),
+      sheetId: getSheetId(),
+      values: [
         expense.id,
         expense.paidBy,
         expense.amount,
         expense.category,
         expense.description,
         expense.date
-      ]]
+      ]
     })
   });
-  if (!res.ok) throw new Error('Failed to add expense to Google Sheets');
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to add expense via proxy');
+  }
+  
   return true;
 } 
