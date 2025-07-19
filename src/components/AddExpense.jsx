@@ -11,15 +11,18 @@ const AddExpense = ({ onAddExpense, userName, onBack }) => {
   });
 
   const categories = [
-    'Food & Dining',
-    'Transportation',
+    'Groceries',
+    'Transport',
+    'Petrol',
     'Shopping',
     'Entertainment',
-    'Bills & Utilities',
+    'Bills',
     'Healthcare',
     'Travel',
     'Education',
-    'Other'
+    'Home & Garden',
+    'Personal Care',
+    'Gifts & Donations'
   ];
 
   const handleSubmit = (e) => {

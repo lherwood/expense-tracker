@@ -61,14 +61,18 @@ const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
 
   const getCategoryColor = (category) => {
     const colors = {
-      'Food & Dining': 'bg-orange-100 text-orange-800',
-      'Transportation': 'bg-blue-100 text-blue-800',
-      'Entertainment': 'bg-purple-100 text-purple-800',
+      'Groceries': 'bg-green-100 text-green-800',
+      'Transport': 'bg-blue-100 text-blue-800',
+      'Petrol': 'bg-orange-100 text-orange-800',
       'Shopping': 'bg-pink-100 text-pink-800',
-      'Bills & Utilities': 'bg-red-100 text-red-800',
-      'Healthcare': 'bg-green-100 text-green-800',
+      'Entertainment': 'bg-purple-100 text-purple-800',
+      'Bills': 'bg-red-100 text-red-800',
+      'Healthcare': 'bg-teal-100 text-teal-800',
       'Travel': 'bg-yellow-100 text-yellow-800',
-      'Other': 'bg-gray-100 text-gray-800'
+      'Education': 'bg-indigo-100 text-indigo-800',
+      'Home & Garden': 'bg-emerald-100 text-emerald-800',
+      'Personal Care': 'bg-rose-100 text-rose-800',
+      'Gifts & Donations': 'bg-cyan-100 text-cyan-800'
     };
     return colors[category] || 'bg-gray-100 text-gray-800';
   };
