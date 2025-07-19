@@ -39,6 +39,17 @@ export default async function handler(req, res) {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         };
+      } else if (action === 'deleteExpense') {
+        const searchParams = new URLSearchParams({
+          method: 'POST',
+          action: 'deleteExpense',
+          ...params
+        });
+        url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
+        options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        };
       }
     }
 

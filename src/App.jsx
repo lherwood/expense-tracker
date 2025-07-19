@@ -5,7 +5,7 @@ import AddExpense from './components/AddExpense';
 import Insights from './components/Insights';
 import SettingsScreen from './components/SettingsScreen';
 import AllExpenses from './components/AllExpenses';
-import { fetchExpenses, addExpenseToSheet, ensureSheetHeaders } from './utils/googleSheets';
+import { fetchExpenses, addExpenseToSheet, ensureSheetHeaders, deleteExpenseFromSheet } from './utils/googleSheets';
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -70,6 +70,22 @@ const App = () => {
     setLoading(false);
   };
 
+  // Delete expense from Google Sheets
+  const deleteExpense = async (expenseId) => {
+    setLoading(true);
+    setError('');
+    try {
+      await deleteExpenseFromSheet(expenseId);
+      // Reload expenses after deleting
+      const data = await fetchExpenses();
+      setExpenses(data.reverse());
+    } catch (err) {
+      console.error('Error deleting expense:', err);
+      setError(`Failed to delete expense: ${err.message}`);
+    }
+    setLoading(false);
+  };
+
   const renderScreen = () => {
     if (loading) {
       return (
@@ -82,17 +98,17 @@ const App = () => {
     // Don't return early on error!
     switch (currentScreen) {
       case 'home':
-        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} />;
+        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} onDeleteExpense={deleteExpense} />;
       case 'add':
         return <AddExpense onAddExpense={addExpense} userName={userName} onBack={() => setCurrentScreen('home')} />;
       case 'insights':
         return <Insights expenses={expenses} onBack={() => setCurrentScreen('home')} />;
       case 'expenses':
-        return <AllExpenses expenses={expenses} onBack={() => setCurrentScreen('home')} />;
+        return <AllExpenses expenses={expenses} onBack={() => setCurrentScreen('home')} onDeleteExpense={deleteExpense} />;
       case 'settings':
         return <SettingsScreen onBack={() => setCurrentScreen('home')} />;
       default:
-        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} />;
+        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} onDeleteExpense={deleteExpense} />;
     }
   };
 

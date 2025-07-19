@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Filter, Calendar, User, DollarSign, ArrowLeft } from 'lucide-react';
+import { Filter, Calendar, User, DollarSign, ArrowLeft, Trash2 } from 'lucide-react';
 
-const AllExpenses = ({ expenses, onBack }) => {
+const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
   const [filterPerson, setFilterPerson] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [sortBy, setSortBy] = useState('date');
@@ -181,7 +181,20 @@ const AllExpenses = ({ expenses, onBack }) => {
                   <User className="w-4 h-4 text-gray-500 mr-2" />
                   <span className="text-sm font-medium text-gray-900">{expense.paidBy || 'Unknown'}</span>
                 </div>
-                <span className="text-lg font-bold text-gray-900">R{expense.amount.toFixed(2)}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-gray-900">R{expense.amount.toFixed(2)}</span>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this expense?')) {
+                        onDeleteExpense(expense.id);
+                      }
+                    }}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                    title="Delete expense"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-center justify-between">

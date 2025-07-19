@@ -87,4 +87,29 @@ export async function addExpenseToSheet(expense) {
   }
   
   return true;
+}
+
+// Delete an expense from the sheet using Apps Script proxy
+export async function deleteExpenseFromSheet(expenseId) {
+  console.log('Deleting expense via Apps Script proxy:', expenseId);
+  
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method: 'POST',
+      action: 'deleteExpense',
+      id: expenseId
+    })
+  });
+  
+  console.log('Apps Script proxy delete response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy delete error response:', errorData);
+    throw new Error(errorData.error || 'Failed to delete expense via Apps Script proxy');
+  }
+  
+  return true;
 } 
