@@ -57,9 +57,16 @@ export async function fetchExpenses() {
   console.log('Raw values from Apps Script:', data.values);
   
   // Skip the header row (first row) and filter out empty rows
-  const dataRows = data.values.slice(1).filter(row => 
-    row && row.length > 0 && row.some(cell => cell && cell.toString().trim() !== '')
-  );
+  const dataRows = data.values.slice(1).filter(row => {
+    console.log('Checking row:', row);
+    const isValid = row && 
+                   row.length > 0 && 
+                   row.some(cell => cell && cell.toString().trim() !== '') &&
+                   // Make sure it's not just the header row again
+                   !(row[0] === 'id' && row[1] === 'paidBy' && row[2] === 'amount');
+    console.log('Row is valid:', isValid);
+    return isValid;
+  });
   
   console.log('Data rows after filtering:', dataRows);
   
