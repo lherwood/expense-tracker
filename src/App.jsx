@@ -25,12 +25,24 @@ const App = () => {
     const loadExpenses = async () => {
       setLoading(true);
       setError('');
+      
+      // Check if API key and Sheet ID are set
+      const apiKey = localStorage.getItem('googleApiKey');
+      const sheetId = localStorage.getItem('googleSheetId');
+      
+      if (!apiKey || !sheetId) {
+        setError('Please set your Google Sheets API key and Sheet ID in Settings first.');
+        setLoading(false);
+        return;
+      }
+      
       try {
         await ensureSheetHeaders();
         const data = await fetchExpenses();
         setExpenses(data.reverse()); // Show newest first
       } catch (err) {
-        setError('Failed to load expenses from Google Sheets. Please check your API key and Sheet ID.');
+        console.error('Error loading expenses:', err);
+        setError(`Failed to load expenses: ${err.message}`);
       }
       setLoading(false);
     };
@@ -52,7 +64,8 @@ const App = () => {
       const data = await fetchExpenses();
       setExpenses(data.reverse());
     } catch (err) {
-      setError('Failed to add expense to Google Sheets.');
+      console.error('Error adding expense:', err);
+      setError(`Failed to add expense: ${err.message}`);
     }
     setLoading(false);
   };
