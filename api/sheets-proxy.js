@@ -9,7 +9,10 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     // Handle GET request for fetching expenses
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A2:F1000?key=${apiKey}`;
+    const { range } = req.query;
+    const sheetRange = range || 'Sheet1!A2:F1000';
+    
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetRange}?key=${apiKey}`;
     
     const googleRes = await fetch(url);
     const data = await googleRes.json();

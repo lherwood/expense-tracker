@@ -9,16 +9,6 @@ const HEADERS = ['id', 'paidBy', 'amount', 'category', 'description', 'date'];
 // Vercel proxy URL
 const PROXY_URL = 'https://expense-tracker-zslu.vercel.app/api/sheets-proxy';
 
-// Helper: Build Sheets API URL
-function buildUrl(path, params = {}) {
-  const apiKey = getApiKey();
-  const base = `https://sheets.googleapis.com/v4/spreadsheets/${getSheetId()}${path}`;
-  const url = new URL(base);
-  url.searchParams.set('key', apiKey);
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  return url.toString();
-}
-
 // Ensure headers exist (if sheet is blank) using Vercel proxy
 export async function ensureSheetHeaders() {
   const apiKey = getApiKey();
