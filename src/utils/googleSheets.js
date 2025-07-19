@@ -58,13 +58,25 @@ export async function fetchExpenses() {
   
   // Skip the header row (first row) and filter out empty rows
   const dataRows = data.values.slice(1).filter(row => {
-    console.log('Checking row:', row);
-    const isValid = row && 
-                   row.length > 0 && 
-                   row.some(cell => cell && cell.toString().trim() !== '') &&
-                   // Make sure it's not just the header row again
-                   !(row[0] === 'id' && row[1] === 'paidBy' && row[2] === 'amount');
+    console.log('=== Checking row ===');
+    console.log('Row:', row);
+    console.log('Row type:', typeof row);
+    console.log('Row length:', row ? row.length : 'null');
+    console.log('Row stringified:', JSON.stringify(row));
+    
+    const hasContent = row && row.length > 0;
+    console.log('Has content:', hasContent);
+    
+    const hasNonEmptyCells = row.some(cell => cell && cell.toString().trim() !== '');
+    console.log('Has non-empty cells:', hasNonEmptyCells);
+    
+    const isNotHeader = !(row[0] === 'id' && row[1] === 'paidBy' && row[2] === 'amount');
+    console.log('Is not header:', isNotHeader);
+    
+    const isValid = hasContent && hasNonEmptyCells && isNotHeader;
     console.log('Row is valid:', isValid);
+    console.log('=== End checking row ===');
+    
     return isValid;
   });
   
