@@ -58,7 +58,9 @@ export default async function handler(req, res) {
     const response = await fetch(url, options);
     const data = await response.text();
 
-    console.log('Apps Script response:', { status: response.status, data });
+    console.log('Apps Script response status:', response.status);
+    console.log('Apps Script response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('Apps Script raw response data:', data);
 
     if (!response.ok) {
       return res.status(response.status).json({ 
@@ -70,8 +72,10 @@ export default async function handler(req, res) {
     // Try to parse as JSON, fallback to text
     try {
       const jsonData = JSON.parse(data);
+      console.log('Parsed JSON data:', jsonData);
       return res.status(200).json(jsonData);
-    } catch {
+    } catch (parseError) {
+      console.log('Failed to parse as JSON, returning as text:', parseError);
       return res.status(200).json({ data: data });
     }
 
