@@ -6,6 +6,15 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
 
   const formatRand = (val) => `R${parseFloat(val).toFixed(2)}`;
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-ZA', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  };
+
   const total = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const avg = expenses.length ? total / expenses.length : 0;
 
@@ -80,7 +89,7 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
               <div key={expense.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{expense.paidBy}</p>
-                  <p className="text-sm text-gray-500">{expense.category} • {expense.date}</p>
+                  <p className="text-sm text-gray-500">{expense.category} • {formatDate(expense.date)}</p>
                 </div>
                 <p className="font-semibold text-indigo-600">{formatRand(expense.amount)}</p>
               </div>
