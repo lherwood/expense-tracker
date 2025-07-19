@@ -7,16 +7,19 @@ const getSheetId = () => localStorage.getItem('googleSheetId') || '';
 const SHEET_RANGE = 'Sheet1'; // Default sheet/tab name
 const HEADERS = ['id', 'paidBy', 'amount', 'category', 'description', 'date'];
 
-// Google Apps Script URL
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFWQk4YJrPj-yXGu-ktyq8nSHtR8x7GToaFIwkz6I_qbFTh4h6YUH41qi57fgPQZ9c2w/exec';
+// Vercel proxy URL for Apps Script
+const PROXY_URL = 'https://expense-tracker-zslu.vercel.app/api/apps-script-proxy';
 
-// Ensure headers exist (if sheet is blank) using Apps Script
+// Ensure headers exist (if sheet is blank) using Apps Script proxy
 export async function ensureSheetHeaders() {
   try {
-    const url = `${APPS_SCRIPT_URL}?method=POST&action=addHeaders`;
-    const res = await fetch(url, {
+    const res = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        method: 'POST',
+        action: 'addHeaders'
+      })
     });
     
     if (!res.ok) {
@@ -27,21 +30,19 @@ export async function ensureSheetHeaders() {
   }
 }
 
-// Fetch all expenses from the sheet using Apps Script
+// Fetch all expenses from the sheet using Apps Script proxy
 export async function fetchExpenses() {
-  console.log('Fetching expenses via Apps Script');
+  console.log('Fetching expenses via Apps Script proxy');
   
-  const url = `${APPS_SCRIPT_URL}?method=GET`;
-  
-  const res = await fetch(url, {
+  const res = await fetch(`${PROXY_URL}?method=GET`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    console.error('Apps Script error response:', errorData);
-    throw new Error(errorData.error || 'Failed to fetch expenses via Apps Script');
+    console.error('Apps Script proxy error response:', errorData);
+    throw new Error(errorData.error || 'Failed to fetch expenses via Apps Script proxy');
   }
   
   const data = await res.json();
@@ -57,34 +58,31 @@ export async function fetchExpenses() {
   }));
 }
 
-// Add a new expense to the sheet using Apps Script
+// Add a new expense to the sheet using Apps Script proxy
 export async function addExpenseToSheet(expense) {
-  console.log('Adding expense via Apps Script:', expense);
+  console.log('Adding expense via Apps Script proxy:', expense);
   
-  const params = new URLSearchParams({
+  const res = await fetch(PROXY_URL, {
     method: 'POST',
-    action: 'addExpense',
-    id: expense.id,
-    paidBy: expense.paidBy,
-    amount: expense.amount,
-    category: expense.category,
-    description: expense.description,
-    date: expense.date
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method: 'POST',
+      action: 'addExpense',
+      id: expense.id,
+      paidBy: expense.paidBy,
+      amount: expense.amount,
+      category: expense.category,
+      description: expense.description,
+      date: expense.date
+    })
   });
   
-  const url = `${APPS_SCRIPT_URL}?${params.toString()}`;
-  
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-  });
-  
-  console.log('Apps Script response status:', res.status);
+  console.log('Apps Script proxy response status:', res.status);
   
   if (!res.ok) {
     const errorData = await res.json().catch(() => ({}));
-    console.error('Apps Script error response:', errorData);
-    throw new Error(errorData.error || 'Failed to add expense via Apps Script');
+    console.error('Apps Script proxy error response:', errorData);
+    throw new Error(errorData.error || 'Failed to add expense via Apps Script proxy');
   }
   
   return true;
