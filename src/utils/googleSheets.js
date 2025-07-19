@@ -1,5 +1,6 @@
 // Google Apps Script utility for Expense Tracker
 // Sheet columns: id | paidBy | amount | category | description | date
+// Updated to use Apps Script instead of Google Sheets API
 
 const getApiKey = () => localStorage.getItem('googleApiKey') || '';
 const getSheetId = () => localStorage.getItem('googleSheetId') || '';
