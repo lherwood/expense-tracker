@@ -242,31 +242,6 @@ export async function addShoppingListItem(item, addedBy) {
   return true;
 }
 
-export async function toggleShoppingItem(itemId, completed) {
-  console.log('Toggling shopping list item via Apps Script proxy:', { itemId, completed });
-  
-  const res = await fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      method: 'POST',
-      action: 'toggleShoppingItem',
-      id: itemId,
-      completed: completed
-    })
-  });
-  
-  console.log('Apps Script proxy toggle shopping item response status:', res.status);
-  
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    console.error('Apps Script proxy toggle shopping item error response:', errorData);
-    throw new Error(errorData.error || 'Failed to toggle shopping item via Apps Script proxy');
-  }
-  
-  return true;
-}
-
 export async function deleteShoppingItem(itemId) {
   console.log('Deleting shopping list item via Apps Script proxy:', itemId);
   

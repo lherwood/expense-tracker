@@ -65,17 +65,6 @@ export default async function handler(req, res) {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         };
-      } else if (action === 'toggleShoppingItem') {
-        const searchParams = new URLSearchParams({
-          method: 'POST',
-          action: 'toggleShoppingItem',
-          ...params
-        });
-        url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
-        options = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        };
       } else if (action === 'deleteShoppingItem') {
         const searchParams = new URLSearchParams({
           method: 'POST',

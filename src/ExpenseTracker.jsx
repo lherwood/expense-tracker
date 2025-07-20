@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Calendar, DollarSign, Plus, Trash2, CheckCircle, Circle } from 'lucide-react';
-import { fetchShoppingList, addShoppingListItem, toggleShoppingItem, deleteShoppingItem } from './utils/googleSheets';
+import { TrendingUp, Calendar, DollarSign, Plus, Trash2 } from 'lucide-react';
+import { fetchShoppingList, addShoppingListItem, deleteShoppingItem } from './utils/googleSheets';
 
 const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, updateSharedSavings }) => {
   const [showNamePrompt, setShowNamePrompt] = useState(!userName);
@@ -66,18 +66,6 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
       console.error('Error adding shopping item:', err);
     }
     setLoading(false);
-  };
-
-  // Toggle item completion
-  const handleToggleItem = async (itemId, completed) => {
-    try {
-      await toggleShoppingItem(itemId, !completed);
-      // Reload shopping list
-      const data = await fetchShoppingList();
-      setShoppingList(data);
-    } catch (err) {
-      console.error('Error toggling shopping item:', err);
-    }
   };
 
   // Delete shopping list item
@@ -180,21 +168,9 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
           <div className="space-y-2">
             {shoppingList.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3 flex-1">
-                  <button
-                    onClick={() => handleToggleItem(item.id, item.completed)}
-                    className="text-indigo-600 hover:text-indigo-800 transition-colors"
-                  >
-                    {item.completed ? (
-                      <CheckCircle className="w-5 h-5" />
-                    ) : (
-                      <Circle className="w-5 h-5" />
-                    )}
-                  </button>
-                  <span className={`flex-1 ${item.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                    {item.item}
-                  </span>
-                </div>
+                <span className="flex-1 text-gray-900">
+                  {item.item}
+                </span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-gray-500">{item.addedBy}</span>
                   <button
