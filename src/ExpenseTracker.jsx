@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp, Calendar, DollarSign } from 'lucide-react';
 
-const ExpenseTracker = ({ expenses, userName, setUserName }) => {
+const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, updateSharedSavings }) => {
   const [showNamePrompt, setShowNamePrompt] = useState(!userName);
 
   const formatRand = (val) => `R${parseFloat(val).toFixed(2)}`;
@@ -17,9 +17,6 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
 
   const total = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const avg = expenses.length ? total / expenses.length : 0;
-
-  // Shared savings amount - easily changeable
-  const sharedSavings = 15000; // Change this value as needed
 
   // Get current month expenses
   const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format

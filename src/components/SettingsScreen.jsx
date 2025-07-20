@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Download, Trash2, Info, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Download, Trash2, Info, ExternalLink, TrendingUp } from 'lucide-react';
 
-const SettingsScreen = ({ onBack }) => {
+const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
   const [message, setMessage] = useState('');
+  const [newSavingsAmount, setNewSavingsAmount] = useState(sharedSavings.toString());
 
   const exportToCSV = () => {
     const expenses = JSON.parse(localStorage.getItem('expenseData')) || [];
@@ -43,6 +44,18 @@ const SettingsScreen = ({ onBack }) => {
     }
   };
 
+  const saveSharedSavings = () => {
+    const amount = parseFloat(newSavingsAmount);
+    if (isNaN(amount) || amount < 0) {
+      setMessage('Please enter a valid amount');
+      setTimeout(() => setMessage(''), 3000);
+      return;
+    }
+    updateSharedSavings(amount);
+    setMessage('Shared savings updated successfully!');
+    setTimeout(() => setMessage(''), 3000);
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -64,6 +77,35 @@ const SettingsScreen = ({ onBack }) => {
       )}
 
       <div className="space-y-6">
+        {/* Shared Savings */}
+        <div className="bg-white shadow rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">💰 Shared Savings</h2>
+          <p className="text-gray-600 mb-4">
+            Update your shared savings amount that displays on the home page.
+          </p>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Current Amount: R{sharedSavings.toFixed(2)}
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                placeholder="Enter new amount"
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                value={newSavingsAmount}
+                onChange={(e) => setNewSavingsAmount(e.target.value)}
+              />
+            </div>
+            <button
+              onClick={saveSharedSavings}
+              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Update Shared Savings
+            </button>
+          </div>
+        </div>
+
         {/* Google Sheets Integration */}
         <div className="bg-white shadow rounded-xl p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">📊 Google Sheets Integration</h2>

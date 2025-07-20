@@ -11,6 +11,10 @@ const App = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [expenses, setExpenses] = useState([]);
   const [userName, setUserName] = useState('');
+  const [sharedSavings, setSharedSavings] = useState(() => {
+    const saved = localStorage.getItem('sharedSavings');
+    return saved ? parseFloat(saved) : 15000;
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,6 +23,12 @@ const App = () => {
     const savedName = localStorage.getItem('expenseUser');
     if (savedName) setUserName(savedName);
   }, []);
+
+  // Update shared savings function
+  const updateSharedSavings = (newAmount) => {
+    setSharedSavings(newAmount);
+    localStorage.setItem('sharedSavings', newAmount.toString());
+  };
 
   // Fetch expenses from Google Sheets on load
   useEffect(() => {
@@ -88,7 +98,7 @@ const App = () => {
     // Don't return early on error!
     switch (currentScreen) {
       case 'home':
-        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} onDeleteExpense={deleteExpense} />;
+        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavings} onDeleteExpense={deleteExpense} />;
       case 'add':
         return <AddExpense onAddExpense={addExpense} userName={userName} onBack={() => setCurrentScreen('home')} />;
       case 'insights':
@@ -96,9 +106,9 @@ const App = () => {
       case 'expenses':
         return <AllExpenses expenses={expenses} onBack={() => setCurrentScreen('home')} onDeleteExpense={deleteExpense} />;
       case 'settings':
-        return <SettingsScreen onBack={() => setCurrentScreen('home')} />;
+        return <SettingsScreen onBack={() => setCurrentScreen('home')} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavings} />;
       default:
-        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} onDeleteExpense={deleteExpense} />;
+        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavings} onDeleteExpense={deleteExpense} />;
     }
   };
 
