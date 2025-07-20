@@ -28,6 +28,8 @@ export default async function handler(req, res) {
         url = `${APPS_SCRIPT_URL}?method=GET&action=getShoppingList`;
       } else if (action === 'getSharedSavings') {
         url = `${APPS_SCRIPT_URL}?method=GET&action=getSharedSavings`;
+      } else if (action === 'getPushSubscriptions') {
+        url = `${APPS_SCRIPT_URL}?method=GET&action=getPushSubscriptions`;
       } else {
         url = `${APPS_SCRIPT_URL}?method=GET`;
       }
