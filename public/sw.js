@@ -1,164 +1,118 @@
-// Custom Service Worker for Expense Tracker Push Notifications
+/**
+ * Copyright 2018 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-const CACHE_NAME = 'expense-tracker-v1';
-const API_CACHE_NAME = 'expense-tracker-api-v1';
+// If the loader is already loaded, just stop.
+if (!self.define) {
+  let registry = {};
 
-// Install event - cache static assets
-self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.webmanifest'
-      ]);
-    })
-  );
-});
+  // Used for `eval` and `importScripts` where we can't get script URL by other means.
+  // In both cases, it's safe to use a global var because those functions are synchronous.
+  let nextDefineUri;
 
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-});
-
-// Push notification event
-self.addEventListener('push', (event) => {
-  console.log('Push notification received:', event);
-  
-  if (event.data) {
-    const data = event.data.json();
-    const options = {
-      body: data.body || 'New activity in your expense tracker',
-      icon: '/icon-192.png',
-      badge: '/icon-192.png',
-      vibrate: [200, 100, 200],
-      data: {
-        url: data.url || '/',
-        type: data.type || 'general'
-      },
-      actions: [
-        {
-          action: 'open',
-          title: 'Open App',
-          icon: '/icon-192.png'
-        },
-        {
-          action: 'dismiss',
-          title: 'Dismiss',
-          icon: '/icon-192.png'
-        }
-      ],
-      requireInteraction: false,
-      silent: false
-    };
-
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Expense Tracker', options)
-    );
-  }
-});
-
-// Notification click event
-self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
-  
-  event.notification.close();
-  
-  if (event.action === 'dismiss') {
-    return;
-  }
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if app is already open
-      for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          return client.focus();
-        }
-      }
+  const singleRequire = (uri, parentUri) => {
+    uri = new URL(uri + ".js", parentUri).href;
+    return registry[uri] || (
       
-      // Open app if not already open
-      if (clients.openWindow) {
-        return clients.openWindow(event.notification.data.url || '/');
-      }
-    })
-  );
-});
-
-// Background sync for offline functionality
-self.addEventListener('sync', (event) => {
-  console.log('Background sync triggered:', event.tag);
-  
-  if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
-  }
-});
-
-// Fetch event - handle API requests and caching
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  
-  // Handle API requests
-  if (request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Cache successful API responses
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(API_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
+        new Promise(resolve => {
+          if ("document" in self) {
+            const script = document.createElement("script");
+            script.src = uri;
+            script.onload = resolve;
+            document.head.appendChild(script);
+          } else {
+            nextDefineUri = uri;
+            importScripts(uri);
+            resolve();
           }
-          return response;
         })
-        .catch(() => {
-          // Return cached response if network fails
-          return caches.match(request);
-        })
-    );
-    return;
-  }
-  
-  // Handle static assets
-  if (request.destination === 'document' || request.destination === 'script' || request.destination === 'style') {
-    event.respondWith(
-      caches.match(request).then((response) => {
-        return response || fetch(request);
+      
+      .then(() => {
+        let promise = registry[uri];
+        if (!promise) {
+          throw new Error(`Module ${uri} didn’t register its module`);
+        }
+        return promise;
       })
     );
-  }
-});
+  };
 
-// Background sync function
-async function doBackgroundSync() {
-  try {
-    console.log('Performing background sync...');
-    // You can add background sync logic here
-    // For example, sync pending offline changes
-  } catch (error) {
-    console.error('Background sync failed:', error);
-  }
+  self.define = (depsNames, factory) => {
+    const uri = nextDefineUri || ("document" in self ? document.currentScript.src : "") || location.href;
+    if (registry[uri]) {
+      // Module is already loading or loaded.
+      return;
+    }
+    let exports = {};
+    const require = depUri => singleRequire(depUri, uri);
+    const specialDeps = {
+      module: { uri },
+      exports,
+      require
+    };
+    registry[uri] = Promise.all(depsNames.map(
+      depName => specialDeps[depName] || require(depName)
+    )).then(deps => {
+      factory(...deps);
+      return exports;
+    });
+  };
 }
+define(['./workbox-e7681877'], (function (workbox) { 'use strict';
 
-// Handle service worker messages
-self.addEventListener('message', (event) => {
-  console.log('Service Worker received message:', event.data);
-  
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-}); 
+  self.skipWaiting();
+  workbox.clientsClaim();
+
+  /**
+   * The precacheAndRoute() method efficiently caches and responds to
+   * requests for URLs in the manifest.
+   * See https://goo.gl/S9QRab
+   */
+  workbox.precacheAndRoute([{
+    "url": "registerSW.js",
+    "revision": "3ca0b8505b4bec776b69afdba2768812"
+  }, {
+    "url": "index.html",
+    "revision": "0.00vhrcfkq1c"
+  }], {});
+  workbox.cleanupOutdatedCaches();
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
+    allowlist: [/^\/$/]
+  }));
+  workbox.registerRoute(/^https:\/\/expense-tracker-zslu\.vercel\.app\/api\/.*/i, new workbox.NetworkFirst({
+    "cacheName": "api-cache",
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 50,
+      maxAgeSeconds: 86400
+    })]
+  }), 'GET');
+
+  self.addEventListener('push', function(event) {
+    let data = {};
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'Notification', body: event.data.text() };
+    }
+    const title = data.title || 'Expense Tracker';
+    const options = {
+      body: data.body || '',
+      data: data.data || {},
+      icon: '/icon-192.png', // Optional: path to your app icon
+      badge: '/icon-192.png' // Optional: path to your badge icon
+    };
+    event.waitUntil(
+      self.registration.showNotification(title, options)
+    );
+  });
+
+}));
