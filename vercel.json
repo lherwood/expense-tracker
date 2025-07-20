@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/sw.js", "destination": "/sw.js" },
+    { "source": "/workbox-e7681877.js", "destination": "/workbox-e7681877.js" }
+  ]
+} 
