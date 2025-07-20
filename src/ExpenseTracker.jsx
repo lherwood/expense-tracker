@@ -88,30 +88,6 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
           </div>
         </div>
       </div>
-
-      {/* Current Month Expenses */}
-      <div className="bg-white shadow rounded-xl p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">This Month's Expenses</h2>
-        {currentMonthExpenses.length > 0 ? (
-          <div className="space-y-3">
-            {currentMonthExpenses.slice(0, 3).map((expense) => (
-              <div key={expense.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">{expense.paidBy}</p>
-                  <p className="text-sm text-gray-500">{expense.category} • {formatDate(expense.date)}</p>
-                </div>
-                <p className="font-semibold text-indigo-600">{formatRand(expense.amount)}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-2">📝</div>
-            <p className="text-gray-500">No expenses this month yet</p>
-            <p className="text-sm text-gray-400">Add your first expense to get started!</p>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
