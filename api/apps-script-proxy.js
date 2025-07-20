@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Method is required' });
   }
 
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxeSHR21D7pxG7jpZqxERfG80mH1_QugEIKhLwz0br0GTl4OmxbNwUZo-TIVexK4LDJpw/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNZf-1-Y0lUMZ4FcDxHrS6DIxFQuhh5kSgoxBGSMT-0Lva6kmfpHkg64YcbAVgwxDWNA/exec';
 
   try {
     let url;
