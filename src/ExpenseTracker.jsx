@@ -18,6 +18,18 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
   const total = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const avg = expenses.length ? total / expenses.length : 0;
 
+  // Shared savings amount - easily changeable
+  const sharedSavings = 15000; // Change this value as needed
+
+  // Get current month expenses
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+  const currentMonthExpenses = expenses.filter(exp => {
+    const expenseDate = new Date(exp.date);
+    const expenseMonth = expenseDate.toISOString().slice(0, 7);
+    return expenseMonth === currentMonth;
+  });
+  const currentMonthTotal = currentMonthExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
   const handleNameSet = (e) => {
     e.preventDefault();
     localStorage.setItem('expenseUser', userName);
@@ -63,8 +75,8 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
         <div className="bg-white shadow rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Total Spent</p>
-              <p className="text-2xl font-bold text-indigo-600">{formatRand(total)}</p>
+              <p className="text-sm text-gray-500 mb-1">This Month</p>
+              <p className="text-2xl font-bold text-indigo-600">{formatRand(currentMonthTotal)}</p>
             </div>
             <DollarSign className="w-8 h-8 text-indigo-400" />
           </div>
@@ -72,20 +84,20 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
         <div className="bg-white shadow rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 mb-1">Entries</p>
-              <p className="text-2xl font-bold text-indigo-600">{expenses.length}</p>
+              <p className="text-sm text-gray-500 mb-1">Shared Savings</p>
+              <p className="text-2xl font-bold text-indigo-600">{formatRand(sharedSavings)}</p>
             </div>
-            <Calendar className="w-8 h-8 text-indigo-400" />
+            <TrendingUp className="w-8 h-8 text-indigo-400" />
           </div>
         </div>
       </div>
 
-      {/* Recent Expenses */}
-      {expenses.length > 0 && (
-        <div className="bg-white shadow rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Recent Expenses</h2>
+      {/* Current Month Expenses */}
+      <div className="bg-white shadow rounded-xl p-6">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">This Month's Expenses</h2>
+        {currentMonthExpenses.length > 0 ? (
           <div className="space-y-3">
-            {expenses.slice(0, 3).map((expense) => (
+            {currentMonthExpenses.slice(0, 3).map((expense) => (
               <div key={expense.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-gray-900">{expense.paidBy}</p>
@@ -95,8 +107,14 @@ const ExpenseTracker = ({ expenses, userName, setUserName }) => {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-8">
+            <div className="text-4xl mb-2">📝</div>
+            <p className="text-gray-500">No expenses this month yet</p>
+            <p className="text-sm text-gray-400">Add your first expense to get started!</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

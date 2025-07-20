@@ -4,6 +4,7 @@ import { Filter, Calendar, User, DollarSign, ArrowLeft, Trash2 } from 'lucide-re
 const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
   const [filterPerson, setFilterPerson] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [filterMonth, setFilterMonth] = useState('all');
   const [sortBy, setSortBy] = useState('date');
 
   // Get unique categories and people
@@ -31,6 +32,15 @@ const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
       filtered = filtered.filter(exp => exp.category === filterCategory);
     }
 
+    // Filter by month
+    if (filterMonth !== 'all') {
+      filtered = filtered.filter(exp => {
+        const expenseDate = new Date(exp.date);
+        const expenseMonth = `${expenseDate.getFullYear()}-${String(expenseDate.getMonth() + 1).padStart(2, '0')}`;
+        return expenseMonth === filterMonth;
+      });
+    }
+
     // Sort
     switch (sortBy) {
       case 'date':
@@ -44,11 +54,23 @@ const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
       default:
         return filtered;
     }
-  }, [expenses, filterPerson, filterCategory, sortBy]);
+  }, [expenses, filterPerson, filterCategory, filterMonth, sortBy]);
 
   // Calculate totals
   const totalSpent = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const totalExpenses = filteredExpenses.length;
+
+  // Generate available months from expense data
+  const availableMonths = useMemo(() => {
+    const months = new Set();
+    expenses.forEach(exp => {
+      const date = new Date(exp.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = date.toLocaleDateString('en-ZA', { year: 'numeric', month: 'long' });
+      months.add(JSON.stringify({ key: monthKey, label: monthLabel }));
+    });
+    return Array.from(months).map(m => JSON.parse(m)).sort((a, b) => b.key.localeCompare(a.key));
+  }, [expenses]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -121,7 +143,7 @@ const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
           <h3 className="font-semibold text-gray-900">Filters</h3>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {/* Person Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Person</label>
@@ -148,6 +170,21 @@ const AllExpenses = ({ expenses, onBack, onDeleteExpense }) => {
               <option value="all">All Categories</option>
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Month Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+            <select
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="all">All Months</option>
+              {availableMonths.map(month => (
+                <option key={month.key} value={month.key}>{month.label}</option>
               ))}
             </select>
           </div>
