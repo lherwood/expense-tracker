@@ -1,5 +1,9 @@
-// Complete Google Apps Script Code for Expense Tracker
+// Complete Google Apps Script Code for Expense Tracker with Push Notifications
 // Copy and paste this entire code into your Google Apps Script editor
+
+// VAPID keys for push notifications (you'll need to generate these)
+const VAPID_PRIVATE_KEY = 'YOUR_VAPID_PRIVATE_KEY'; // Replace with your actual private key
+const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY'; // Replace with your actual public key
 
 function doGet(e) {
   return handleRequest(e);
@@ -42,6 +46,10 @@ function handleRequest(e) {
         return deleteShoppingItem(e.parameter);
       } else if (action === 'updateSharedSavings') {
         return updateSharedSavings(e.parameter);
+      } else if (action === 'saveSubscription') {
+        return saveSubscription(e.parameter);
+      } else if (action === 'sendNotification') {
+        return sendNotification(e.parameter);
       }
     }
     
@@ -111,6 +119,13 @@ function addExpense(params) {
   
   sheet.appendRow(row);
   console.log('Added expense:', row);
+  
+  // Send notification to other users
+  sendNotificationToOthers(paidBy, 'expense', {
+    title: '💰 New Expense Added',
+    body: `${paidBy} added R${amount} for ${category}`,
+    data: { type: 'expense', user: paidBy, amount, category }
+  });
   
   return createResponse({ success: true });
 }
@@ -190,6 +205,13 @@ function addShoppingItem(params) {
   sheet.appendRow(row);
   console.log('Added shopping item:', row);
   
+  // Send notification to other users
+  sendNotificationToOthers(addedBy, 'shopping', {
+    title: '🛒 Shopping List Updated',
+    body: `${addedBy} added "${item}" to shopping list`,
+    data: { type: 'shopping', user: addedBy, item }
+  });
+  
   return createResponse({ success: true });
 }
 
@@ -204,8 +226,18 @@ function deleteShoppingItem(params) {
   
   for (let i = 0; i < data.length; i++) {
     if (data[i][0] == id) {
+      const item = data[i][1];
+      const addedBy = data[i][2];
       sheet.deleteRow(i + 1);
       console.log('Deleted shopping item with ID:', id);
+      
+      // Send notification to other users
+      sendNotificationToOthers(addedBy, 'shopping', {
+        title: '✅ Shopping Item Removed',
+        body: `${addedBy} removed "${item}" from shopping list`,
+        data: { type: 'shopping', user: addedBy, item }
+      });
+      
       return createResponse({ success: true });
     }
   }
@@ -241,7 +273,7 @@ function updateSharedSavings(params) {
     newSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
   
-  const { amount } = params;
+  const { amount, user } = params;
   const savingsAmount = parseFloat(amount);
   
   if (isNaN(savingsAmount)) {
@@ -252,7 +284,101 @@ function updateSharedSavings(params) {
   sheet.getRange(2, 1).setValue(savingsAmount);
   console.log('Updated shared savings to:', savingsAmount);
   
+  // Send notification to other users
+  if (user) {
+    sendNotificationToOthers(user, 'savings', {
+      title: '💳 Savings Updated',
+      body: `${user} updated shared savings to R${savingsAmount}`,
+      data: { type: 'savings', user, amount: savingsAmount }
+    });
+  }
+  
   return createResponse({ success: true });
+}
+
+// Push Notification Functions
+function saveSubscription(params) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PushSubscriptions');
+  if (!sheet) {
+    const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet('PushSubscriptions');
+    const headers = ['user', 'endpoint', 'p256dh', 'auth', 'timestamp'];
+    newSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  
+  const { user, endpoint, p256dh, auth } = params;
+  const timestamp = new Date().toISOString();
+  
+  // Check if user already has a subscription
+  const data = sheet.getDataRange().getValues();
+  let userRow = -1;
+  
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === user) {
+      userRow = i + 1;
+      break;
+    }
+  }
+  
+  const row = [user, endpoint, p256dh, auth, timestamp];
+  
+  if (userRow > 0) {
+    // Update existing subscription
+    sheet.getRange(userRow, 1, 1, row.length).setValues([row]);
+    console.log('Updated subscription for user:', user);
+  } else {
+    // Add new subscription
+    sheet.appendRow(row);
+    console.log('Added subscription for user:', user);
+  }
+  
+  return createResponse({ success: true });
+}
+
+function sendNotificationToOthers(excludeUser, type, notification) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PushSubscriptions');
+    if (!sheet) {
+      console.log('No push subscriptions found');
+      return;
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      const user = data[i][0];
+      const endpoint = data[i][1];
+      const p256dh = data[i][2];
+      const auth = data[i][3];
+      
+      // Don't send notification to the user who made the change
+      if (user === excludeUser) {
+        continue;
+      }
+      
+      // Send push notification
+      sendPushNotification(endpoint, p256dh, auth, notification);
+    }
+  } catch (error) {
+    console.error('Error sending notifications:', error);
+  }
+}
+
+function sendPushNotification(endpoint, p256dh, auth, notification) {
+  try {
+    // This is a simplified version - in production you'd use a proper push service
+    // For now, we'll just log the notification
+    console.log('Would send push notification:', {
+      endpoint,
+      notification,
+      timestamp: new Date().toISOString()
+    });
+    
+    // In a real implementation, you'd use a service like Firebase Cloud Messaging
+    // or implement the Web Push protocol here
+    
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+  }
 }
 
 function createResponse(data, statusCode = 200) {
