@@ -167,4 +167,126 @@ export async function deleteExpenseFromSheet(expenseId) {
   }
   
   return true;
+}
+
+// Shopping List Functions
+export async function fetchShoppingList() {
+  console.log('Fetching shopping list via Apps Script proxy');
+  
+  const res = await fetch(`${PROXY_URL}?method=GET&action=getShoppingList`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy error response:', errorData);
+    throw new Error(errorData.error || 'Failed to fetch shopping list via Apps Script proxy');
+  }
+  
+  const data = await res.json();
+  console.log('Raw shopping list data from Apps Script:', data);
+  
+  if (!data.values) {
+    console.log('No shopping list values found, returning empty array');
+    return [];
+  }
+  
+  // Skip header row and filter out empty rows
+  const dataRows = data.values.slice(1).filter(row => 
+    row && row.length > 0 && row.some(cell => cell && cell.toString().trim() !== '')
+  );
+  
+  console.log('Shopping list rows after filtering:', dataRows);
+  
+  const shoppingList = dataRows.map((row, index) => {
+    console.log(`Processing shopping list item ${index}:`, row);
+    const item = {
+      id: row[0] || `item_${Date.now()}_${index}`,
+      item: row[1] || '',
+      addedBy: row[2] || 'Unknown',
+      addedDate: row[3] || new Date().toISOString().split('T')[0],
+      completed: row[4] === 'TRUE' || row[4] === true
+    };
+    console.log(`Processed shopping list item ${index}:`, item);
+    return item;
+  });
+  
+  console.log('Final processed shopping list:', shoppingList);
+  return shoppingList;
+}
+
+export async function addShoppingListItem(item, addedBy) {
+  console.log('Adding shopping list item via Apps Script proxy:', { item, addedBy });
+  
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method: 'POST',
+      action: 'addShoppingItem',
+      item: item,
+      addedBy: addedBy,
+      addedDate: new Date().toISOString().split('T')[0]
+    })
+  });
+  
+  console.log('Apps Script proxy add shopping item response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy add shopping item error response:', errorData);
+    throw new Error(errorData.error || 'Failed to add shopping item via Apps Script proxy');
+  }
+  
+  return true;
+}
+
+export async function toggleShoppingItem(itemId, completed) {
+  console.log('Toggling shopping list item via Apps Script proxy:', { itemId, completed });
+  
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method: 'POST',
+      action: 'toggleShoppingItem',
+      id: itemId,
+      completed: completed
+    })
+  });
+  
+  console.log('Apps Script proxy toggle shopping item response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy toggle shopping item error response:', errorData);
+    throw new Error(errorData.error || 'Failed to toggle shopping item via Apps Script proxy');
+  }
+  
+  return true;
+}
+
+export async function deleteShoppingItem(itemId) {
+  console.log('Deleting shopping list item via Apps Script proxy:', itemId);
+  
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method: 'POST',
+      action: 'deleteShoppingItem',
+      id: itemId
+    })
+  });
+  
+  console.log('Apps Script proxy delete shopping item response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy delete shopping item error response:', errorData);
+    throw new Error(errorData.error || 'Failed to delete shopping item via Apps Script proxy');
+  }
+  
+  return true;
 } 
