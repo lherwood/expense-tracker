@@ -30,6 +30,7 @@ const App = () => {
       // --- Push Notification Logic ---
       try {
         const subscriptions = await fetchPushSubscriptions(userName);
+        console.log('NOTIFY: About to send push notification for savings', subscriptions);
         await Promise.all(subscriptions.map(async (sub) => {
           const subscription = {
             endpoint: sub.endpoint,
@@ -101,6 +102,7 @@ const App = () => {
       // --- Push Notification Logic ---
       try {
         const subscriptions = await fetchPushSubscriptions(userName);
+        console.log('NOTIFY: About to send push notification for expense', subscriptions);
         await Promise.all(subscriptions.map(async (sub) => {
           const subscription = {
             endpoint: sub.endpoint,

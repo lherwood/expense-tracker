@@ -66,6 +66,7 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
       // --- Push Notification Logic ---
       try {
         const subscriptions = await fetchPushSubscriptions(userName);
+        console.log('NOTIFY: About to send push notification for shopping add', subscriptions);
         await Promise.all(subscriptions.map(async (sub) => {
           const subscription = {
             endpoint: sub.endpoint,
@@ -110,6 +111,7 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
       if (item) {
         try {
           const subscriptions = await fetchPushSubscriptions(userName);
+          console.log('NOTIFY: About to send push notification for shopping delete', subscriptions);
           await Promise.all(subscriptions.map(async (sub) => {
             const subscription = {
               endpoint: sub.endpoint,
