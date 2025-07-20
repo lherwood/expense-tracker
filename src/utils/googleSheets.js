@@ -319,3 +319,36 @@ export async function updateSharedSavings(amount) {
   
   return true;
 } 
+
+// Fetch all push subscriptions from the sheet using Apps Script proxy
+export async function fetchPushSubscriptions(currentUser) {
+  console.log('Fetching push subscriptions via Apps Script proxy');
+
+  const res = await fetch(`${PROXY_URL}?method=GET&action=getPushSubscriptions`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy error response:', errorData);
+    throw new Error(errorData.error || 'Failed to fetch push subscriptions via Apps Script proxy');
+  }
+
+  const data = await res.json();
+  console.log('Raw push subscriptions data from Apps Script:', data);
+
+  if (!data.values || data.values.length < 2) {
+    return [];
+  }
+
+  // Skip header row and filter out the current user
+  return data.values.slice(1)
+    .filter(row => row[0] && row[0] !== currentUser)
+    .map(row => ({
+      user: row[0],
+      endpoint: row[1],
+      p256dh: row[2],
+      auth: row[3]
+    }));
+} 

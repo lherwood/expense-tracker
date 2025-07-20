@@ -5,7 +5,7 @@ import AddExpense from './components/AddExpense';
 import Insights from './components/Insights';
 import SettingsScreen from './components/SettingsScreen';
 import AllExpenses from './components/AllExpenses';
-import { fetchExpenses, addExpenseToSheet, ensureSheetHeaders, deleteExpenseFromSheet, fetchSharedSavings, updateSharedSavings } from './utils/googleSheets';
+import { fetchExpenses, addExpenseToSheet, ensureSheetHeaders, deleteExpenseFromSheet, fetchSharedSavings, updateSharedSavings, fetchPushSubscriptions } from './utils/googleSheets';
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -26,6 +26,34 @@ const App = () => {
     try {
       await updateSharedSavings(newAmount);
       setSharedSavings(newAmount);
+
+      // --- Push Notification Logic ---
+      try {
+        const subscriptions = await fetchPushSubscriptions(userName);
+        await Promise.all(subscriptions.map(async (sub) => {
+          const subscription = {
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: sub.p256dh,
+              auth: sub.auth
+            }
+          };
+          const notification = {
+            title: '💳 Savings Updated',
+            body: `${userName} updated shared savings to R${newAmount}`,
+            data: { type: 'savings', user: userName, amount: newAmount }
+          };
+          await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription, notification })
+          });
+        }));
+      } catch (notifyErr) {
+        console.error('Failed to send push notifications:', notifyErr);
+      }
+      // --- End Push Notification Logic ---
+
     } catch (err) {
       console.error('Error updating shared savings:', err);
       setError(`Failed to update shared savings: ${err.message}`);
@@ -69,6 +97,34 @@ const App = () => {
       // Reload expenses after adding
       const data = await fetchExpenses();
       setExpenses(data.reverse());
+
+      // --- Push Notification Logic ---
+      try {
+        const subscriptions = await fetchPushSubscriptions(userName);
+        await Promise.all(subscriptions.map(async (sub) => {
+          const subscription = {
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: sub.p256dh,
+              auth: sub.auth
+            }
+          };
+          const notification = {
+            title: '💰 New Expense Added',
+            body: `${userName} added R${entry.amount} for ${entry.category}`,
+            data: { type: 'expense', user: userName, amount: entry.amount, category: entry.category }
+          };
+          await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription, notification })
+          });
+        }));
+      } catch (notifyErr) {
+        console.error('Failed to send push notifications:', notifyErr);
+      }
+      // --- End Push Notification Logic ---
+
     } catch (err) {
       console.error('Error adding expense:', err);
       setError(`Failed to add expense: ${err.message}`);

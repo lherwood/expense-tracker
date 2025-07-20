@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Calendar, DollarSign, Plus, Trash2 } from 'lucide-react';
-import { fetchShoppingList, addShoppingListItem, deleteShoppingItem } from './utils/googleSheets';
+import { fetchShoppingList, addShoppingListItem, deleteShoppingItem, fetchPushSubscriptions } from './utils/googleSheets';
 
 const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, updateSharedSavings }) => {
   const [showNamePrompt, setShowNamePrompt] = useState(!userName);
@@ -62,6 +62,34 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
       // Reload shopping list
       const data = await fetchShoppingList();
       setShoppingList(data);
+
+      // --- Push Notification Logic ---
+      try {
+        const subscriptions = await fetchPushSubscriptions(userName);
+        await Promise.all(subscriptions.map(async (sub) => {
+          const subscription = {
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: sub.p256dh,
+              auth: sub.auth
+            }
+          };
+          const notification = {
+            title: '🛒 Shopping List Updated',
+            body: `${userName} added "${newItem.trim()}" to shopping list`,
+            data: { type: 'shopping', user: userName, item: newItem.trim() }
+          };
+          await fetch('/api/send-notification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subscription, notification })
+          });
+        }));
+      } catch (notifyErr) {
+        console.error('Failed to send push notifications:', notifyErr);
+      }
+      // --- End Push Notification Logic ---
+
     } catch (err) {
       console.error('Error adding shopping item:', err);
     }
@@ -71,10 +99,42 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
   // Delete shopping list item
   const handleDeleteItem = async (itemId) => {
     try {
+      // Find the item for notification
+      const item = shoppingList.find(i => i.id === itemId);
       await deleteShoppingItem(itemId);
       // Reload shopping list
       const data = await fetchShoppingList();
       setShoppingList(data);
+
+      // --- Push Notification Logic ---
+      if (item) {
+        try {
+          const subscriptions = await fetchPushSubscriptions(userName);
+          await Promise.all(subscriptions.map(async (sub) => {
+            const subscription = {
+              endpoint: sub.endpoint,
+              keys: {
+                p256dh: sub.p256dh,
+                auth: sub.auth
+              }
+            };
+            const notification = {
+              title: '✅ Shopping Item Removed',
+              body: `${userName} removed "${item.item}" from shopping list`,
+              data: { type: 'shopping', user: userName, item: item.item }
+            };
+            await fetch('/api/send-notification', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ subscription, notification })
+            });
+          }));
+        } catch (notifyErr) {
+          console.error('Failed to send push notifications:', notifyErr);
+        }
+      }
+      // --- End Push Notification Logic ---
+
     } catch (err) {
       console.error('Error deleting shopping item:', err);
     }
