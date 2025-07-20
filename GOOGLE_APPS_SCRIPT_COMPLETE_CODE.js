@@ -10,8 +10,13 @@ function doPost(e) {
 }
 
 function handleRequest(e) {
-  const method = e.parameter.method || 'GET';
-  const action = e.parameter.action;
+  // Handle case where e might be undefined (when running directly in editor)
+  if (!e) {
+    return createResponse({ error: 'No request parameters provided' }, 400);
+  }
+  
+  const method = e.parameter ? (e.parameter.method || 'GET') : 'GET';
+  const action = e.parameter ? e.parameter.action : null;
   
   console.log('Request received:', { method, action, parameters: e.parameter });
   
@@ -47,6 +52,33 @@ function handleRequest(e) {
   }
 }
 
+// Test function - you can run this directly in the Apps Script editor
+function testSetup() {
+  console.log('Setting up test data...');
+  
+  try {
+    // Test adding headers
+    const headerResult = addHeaders();
+    console.log('Headers result:', headerResult);
+    
+    // Test getting shared savings
+    const savingsResult = getSharedSavings();
+    console.log('Shared savings result:', savingsResult);
+    
+    // Test getting expenses
+    const expensesResult = getExpenses();
+    console.log('Expenses result:', expensesResult);
+    
+    // Test getting shopping list
+    const shoppingResult = getShoppingList();
+    console.log('Shopping list result:', shoppingResult);
+    
+    console.log('Setup completed successfully!');
+  } catch (error) {
+    console.error('Setup failed:', error);
+  }
+}
+
 function getExpenses() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Expenses');
   if (!sheet) {
@@ -62,7 +94,7 @@ function getExpenses() {
 function addExpense(params) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Expenses');
   if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet('Expenses');
+    const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet('Expenses');
     addHeaders();
   }
   
@@ -227,14 +259,8 @@ function createResponse(data, statusCode = 200) {
   const response = ContentService.createTextOutput(JSON.stringify(data));
   response.setMimeType(ContentService.MimeType.JSON);
   
-  // Set CORS headers
-  response.setHeader('Access-Control-Allow-Origin', '*');
-  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
-  if (statusCode !== 200) {
-    response.setStatusCode(statusCode);
-  }
+  // Note: CORS headers are automatically handled by Google Apps Script
+  // No need to set them manually
   
   return response;
 } 
