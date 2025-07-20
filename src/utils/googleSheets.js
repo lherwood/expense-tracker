@@ -284,12 +284,14 @@ export async function fetchSharedSavings() {
   const data = await res.json();
   console.log('Raw shared savings data from Apps Script:', data);
   
-  if (!data.values || !data.values[0] || !data.values[0][0]) {
+  if (!data.values || data.values.length < 2) {
     console.log('No shared savings value found, returning default');
     return 15000; // Default value
   }
   
-  const savingsAmount = parseFloat(data.values[0][0]) || 15000;
+  // The amount is in the second row (index 1), first column (index 0)
+  // First row (index 0) contains the header "amount"
+  const savingsAmount = parseFloat(data.values[1][0]) || 15000;
   console.log('Fetched shared savings amount:', savingsAmount);
   return savingsAmount;
 }
