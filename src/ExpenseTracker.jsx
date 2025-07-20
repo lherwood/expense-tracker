@@ -38,11 +38,13 @@ const ExpenseTracker = ({ expenses, userName, setUserName, sharedSavings, update
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          {userName ? `Hi, ${userName}! 👋` : 'Expense Tracker'}
+          {userName ? userName : 'Expense Tracker'}
         </h1>
-        <p className="text-gray-600">
-          {userName ? 'Track your expenses and stay on top of your spending' : 'Welcome! Let\'s get started'}
-        </p>
+        {!userName && (
+          <p className="text-gray-600">
+            Welcome! Let's get started
+          </p>
+        )}
       </div>
 
       {/* Name prompt */}
