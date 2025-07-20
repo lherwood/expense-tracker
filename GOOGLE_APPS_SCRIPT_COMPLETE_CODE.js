@@ -30,6 +30,8 @@ function handleRequest(e) {
         return getShoppingList();
       } else if (action === 'getSharedSavings') {
         return getSharedSavings();
+      } else if (action === 'getPushSubscriptions') {
+        return getPushSubscriptions();
       } else {
         return getExpenses();
       }
@@ -389,4 +391,14 @@ function createResponse(data, statusCode = 200) {
   // No need to set them manually
   
   return response;
+} 
+
+// Return all push subscriptions
+function getPushSubscriptions() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('PushSubscriptions');
+  if (!sheet) {
+    return createResponse({ values: [] });
+  }
+  const data = sheet.getDataRange().getValues();
+  return createResponse({ values: data });
 } 
