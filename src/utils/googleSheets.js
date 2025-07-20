@@ -347,8 +347,8 @@ export async function fetchPushSubscriptions(currentUser) {
     .filter(row => row[0] && row[0] !== currentUser)
     .map(row => ({
       user: row[0],
-      endpoint: row[1],
-      p256dh: row[2],
-      auth: row[3]
+      endpoint: String(row[1]),
+      p256dh: String(row[2]),
+      auth: String(row[3])
     }));
 } 
