@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Download, Trash2, Info, ExternalLink, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Download, Trash2, Info, ExternalLink, TrendingUp, Bell } from 'lucide-react';
+import notificationService from '../utils/notifications';
 
 const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
   const [message, setMessage] = useState('');
   const [newSavingsAmount, setNewSavingsAmount] = useState(sharedSavings.toString());
   const [saving, setSaving] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
 
   const exportToCSV = () => {
     const expenses = JSON.parse(localStorage.getItem('expenseData')) || [];
@@ -65,6 +67,18 @@ const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
     setSaving(false);
   };
 
+  const enableNotifications = async () => {
+    setNotifLoading(true);
+    const result = await notificationService.initialize();
+    if (result) {
+      setMessage('Notifications enabled!');
+    } else {
+      setMessage('Failed to enable notifications or permission denied.');
+    }
+    setNotifLoading(false);
+    setTimeout(() => setMessage(''), 4000);
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -86,6 +100,22 @@ const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
       )}
 
       <div className="space-y-6">
+        {/* Enable Notifications */}
+        <div className="bg-white shadow rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">🔔 Notifications</h2>
+          <p className="text-gray-600 mb-4">
+            Get notified instantly when Amy or you update savings, add expenses, or change the shopping list.
+          </p>
+          <button
+            onClick={enableNotifications}
+            disabled={notifLoading}
+            className="w-full flex items-center justify-center p-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Bell className="w-5 h-5 mr-2" />
+            {notifLoading ? 'Enabling...' : 'Enable Notifications'}
+          </button>
+        </div>
+
         {/* Shared Savings */}
         <div className="bg-white shadow rounded-xl p-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">💰 Shared Savings</h2>
