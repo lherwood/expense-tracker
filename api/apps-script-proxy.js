@@ -9,14 +9,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Method is required' });
   }
 
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzeB5pk6klpVMlfFtK35KmsSRnIV_2fij0lkImteb37rjSFd-jRZMf1_PZAVMud1WlNbw/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyz_tb0t30b6DSLi0G_Zyl4FR1xyGY3A6AyqYlLWC5aaepUWXQ1wreTpu_-_bpo-Rswcw/exec';
 
   try {
     let url;
     let options = {};
 
     if (method === 'GET') {
-      url = `${APPS_SCRIPT_URL}?method=GET`;
+      if (action === 'getShoppingList') {
+        url = `${APPS_SCRIPT_URL}?method=GET&action=getShoppingList`;
+      } else {
+        url = `${APPS_SCRIPT_URL}?method=GET`;
+      }
       options = {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
@@ -43,6 +47,39 @@ export default async function handler(req, res) {
         const searchParams = new URLSearchParams({
           method: 'POST',
           action: 'deleteExpense',
+          ...params
+        });
+        url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
+        options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        };
+      } else if (action === 'addShoppingItem') {
+        const searchParams = new URLSearchParams({
+          method: 'POST',
+          action: 'addShoppingItem',
+          ...params
+        });
+        url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
+        options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        };
+      } else if (action === 'toggleShoppingItem') {
+        const searchParams = new URLSearchParams({
+          method: 'POST',
+          action: 'toggleShoppingItem',
+          ...params
+        });
+        url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
+        options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        };
+      } else if (action === 'deleteShoppingItem') {
+        const searchParams = new URLSearchParams({
+          method: 'POST',
+          action: 'deleteShoppingItem',
           ...params
         });
         url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
