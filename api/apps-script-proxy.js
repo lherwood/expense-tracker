@@ -1,6 +1,14 @@
 // /api/apps-script-proxy.js
 
 export default async function handler(req, res) {
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
+  }
+
   const { method, action, ...params } = req.method === 'GET' ? req.query : req.body;
 
   console.log('Apps Script proxy received request:', { method, action, params });
