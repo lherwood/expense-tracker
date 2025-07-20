@@ -345,10 +345,14 @@ export async function fetchPushSubscriptions(currentUser) {
   // Skip header row and filter out the current user
   return data.values.slice(1)
     .filter(row => row[0] && row[0] !== currentUser)
-    .map(row => ({
-      user: row[0],
-      endpoint: String(row[1]),
-      p256dh: String(row[2]),
-      auth: String(row[3])
-    }));
+    .map(row => {
+      const p256dh = String(row[2]);
+      console.log('DEBUG: fetchPushSubscriptions p256dh:', p256dh, 'Length:', p256dh.length);
+      return {
+        user: row[0],
+        endpoint: String(row[1]),
+        p256dh,
+        auth: String(row[3])
+      };
+    });
 } 

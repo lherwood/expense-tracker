@@ -16,6 +16,12 @@ export default async function handler(req, res) {
 
   const { subscription, notification } = req.body;
 
+  console.log('DEBUG: Received subscription:', JSON.stringify(subscription));
+  if (subscription && subscription.keys) {
+    console.log('DEBUG: Received p256dh:', subscription.keys.p256dh, 'Length:', subscription.keys.p256dh.length);
+    console.log('DEBUG: Received auth:', subscription.keys.auth, 'Length:', subscription.keys.auth.length);
+  }
+
   if (!subscription || !notification) {
     return res.status(400).json({ error: 'Missing subscription or notification data' });
   }

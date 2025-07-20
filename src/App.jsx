@@ -111,6 +111,7 @@ const App = () => {
               auth: sub.auth
             }
           };
+          console.log('DEBUG: App.jsx sending p256dh:', sub.p256dh, 'Length:', sub.p256dh.length);
           const notification = {
             title: '💰 New Expense Added',
             body: `${userName} added R${entry.amount} for ${entry.category}`,
