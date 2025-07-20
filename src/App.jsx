@@ -5,16 +5,13 @@ import AddExpense from './components/AddExpense';
 import Insights from './components/Insights';
 import SettingsScreen from './components/SettingsScreen';
 import AllExpenses from './components/AllExpenses';
-import { fetchExpenses, addExpenseToSheet, ensureSheetHeaders, deleteExpenseFromSheet } from './utils/googleSheets';
+import { fetchExpenses, addExpenseToSheet, ensureSheetHeaders, deleteExpenseFromSheet, fetchSharedSavings, updateSharedSavings } from './utils/googleSheets';
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('home');
   const [expenses, setExpenses] = useState([]);
   const [userName, setUserName] = useState('');
-  const [sharedSavings, setSharedSavings] = useState(() => {
-    const saved = localStorage.getItem('sharedSavings');
-    return saved ? parseFloat(saved) : 15000;
-  });
+  const [sharedSavings, setSharedSavings] = useState(15000);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,28 +22,37 @@ const App = () => {
   }, []);
 
   // Update shared savings function
-  const updateSharedSavings = (newAmount) => {
-    setSharedSavings(newAmount);
-    localStorage.setItem('sharedSavings', newAmount.toString());
+  const updateSharedSavingsAmount = async (newAmount) => {
+    try {
+      await updateSharedSavings(newAmount);
+      setSharedSavings(newAmount);
+    } catch (err) {
+      console.error('Error updating shared savings:', err);
+      setError(`Failed to update shared savings: ${err.message}`);
+    }
   };
 
-  // Fetch expenses from Google Sheets on load
+  // Fetch expenses and shared savings from Google Sheets on load
   useEffect(() => {
-    const loadExpenses = async () => {
+    const loadData = async () => {
       setLoading(true);
       setError('');
       
       try {
         await ensureSheetHeaders();
-        const data = await fetchExpenses();
-        setExpenses(data.reverse()); // Show newest first
+        const [expensesData, savingsData] = await Promise.all([
+          fetchExpenses(),
+          fetchSharedSavings()
+        ]);
+        setExpenses(expensesData.reverse()); // Show newest first
+        setSharedSavings(savingsData);
       } catch (err) {
-        console.error('Error loading expenses:', err);
-        setError(`Failed to load expenses: ${err.message}`);
+        console.error('Error loading data:', err);
+        setError(`Failed to load data: ${err.message}`);
       }
       setLoading(false);
     };
-    loadExpenses();
+    loadData();
   }, []);
 
   // Add expense to Google Sheets
@@ -98,7 +104,7 @@ const App = () => {
     // Don't return early on error!
     switch (currentScreen) {
       case 'home':
-        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavings} onDeleteExpense={deleteExpense} />;
+        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavingsAmount} onDeleteExpense={deleteExpense} />;
       case 'add':
         return <AddExpense onAddExpense={addExpense} userName={userName} onBack={() => setCurrentScreen('home')} />;
       case 'insights':
@@ -106,9 +112,9 @@ const App = () => {
       case 'expenses':
         return <AllExpenses expenses={expenses} onBack={() => setCurrentScreen('home')} onDeleteExpense={deleteExpense} />;
       case 'settings':
-        return <SettingsScreen onBack={() => setCurrentScreen('home')} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavings} />;
+        return <SettingsScreen onBack={() => setCurrentScreen('home')} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavingsAmount} />;
       default:
-        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavings} onDeleteExpense={deleteExpense} />;
+        return <ExpenseTracker expenses={expenses} userName={userName} setUserName={setUserName} sharedSavings={sharedSavings} updateSharedSavings={updateSharedSavingsAmount} onDeleteExpense={deleteExpense} />;
     }
   };
 

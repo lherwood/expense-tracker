@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Trash2, Info, ExternalLink, TrendingUp } from 'luc
 const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
   const [message, setMessage] = useState('');
   const [newSavingsAmount, setNewSavingsAmount] = useState(sharedSavings.toString());
+  const [saving, setSaving] = useState(false);
 
   const exportToCSV = () => {
     const expenses = JSON.parse(localStorage.getItem('expenseData')) || [];
@@ -44,16 +45,24 @@ const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
     }
   };
 
-  const saveSharedSavings = () => {
+  const saveSharedSavings = async () => {
     const amount = parseFloat(newSavingsAmount);
     if (isNaN(amount) || amount < 0) {
       setMessage('Please enter a valid amount');
       setTimeout(() => setMessage(''), 3000);
       return;
     }
-    updateSharedSavings(amount);
-    setMessage('Shared savings updated successfully!');
-    setTimeout(() => setMessage(''), 3000);
+    
+    setSaving(true);
+    try {
+      await updateSharedSavings(amount);
+      setMessage('Shared savings updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      setMessage('Failed to update shared savings. Please try again.');
+      setTimeout(() => setMessage(''), 3000);
+    }
+    setSaving(false);
   };
 
   return (
@@ -99,9 +108,10 @@ const SettingsScreen = ({ onBack, sharedSavings, updateSharedSavings }) => {
             </div>
             <button
               onClick={saveSharedSavings}
-              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+              disabled={saving}
+              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Update Shared Savings
+              {saving ? 'Updating...' : 'Update Shared Savings'}
             </button>
           </div>
         </div>

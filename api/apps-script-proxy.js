@@ -18,6 +18,8 @@ export default async function handler(req, res) {
     if (method === 'GET') {
       if (action === 'getShoppingList') {
         url = `${APPS_SCRIPT_URL}?method=GET&action=getShoppingList`;
+      } else if (action === 'getSharedSavings') {
+        url = `${APPS_SCRIPT_URL}?method=GET&action=getSharedSavings`;
       } else {
         url = `${APPS_SCRIPT_URL}?method=GET`;
       }
@@ -69,6 +71,17 @@ export default async function handler(req, res) {
         const searchParams = new URLSearchParams({
           method: 'POST',
           action: 'deleteShoppingItem',
+          ...params
+        });
+        url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;
+        options = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        };
+      } else if (action === 'updateSharedSavings') {
+        const searchParams = new URLSearchParams({
+          method: 'POST',
+          action: 'updateSharedSavings',
           ...params
         });
         url = `${APPS_SCRIPT_URL}?${searchParams.toString()}`;

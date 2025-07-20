@@ -264,4 +264,56 @@ export async function deleteShoppingItem(itemId) {
   }
   
   return true;
+}
+
+// Shared Savings Functions
+export async function fetchSharedSavings() {
+  console.log('Fetching shared savings via Apps Script proxy');
+  
+  const res = await fetch(`${PROXY_URL}?method=GET&action=getSharedSavings`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy error response:', errorData);
+    throw new Error(errorData.error || 'Failed to fetch shared savings via Apps Script proxy');
+  }
+  
+  const data = await res.json();
+  console.log('Raw shared savings data from Apps Script:', data);
+  
+  if (!data.values || !data.values[0] || !data.values[0][0]) {
+    console.log('No shared savings value found, returning default');
+    return 15000; // Default value
+  }
+  
+  const savingsAmount = parseFloat(data.values[0][0]) || 15000;
+  console.log('Fetched shared savings amount:', savingsAmount);
+  return savingsAmount;
+}
+
+export async function updateSharedSavings(amount) {
+  console.log('Updating shared savings via Apps Script proxy:', amount);
+  
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      method: 'POST',
+      action: 'updateSharedSavings',
+      amount: amount
+    })
+  });
+  
+  console.log('Apps Script proxy update shared savings response status:', res.status);
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    console.error('Apps Script proxy update shared savings error response:', errorData);
+    throw new Error(errorData.error || 'Failed to update shared savings via Apps Script proxy');
+  }
+  
+  return true;
 } 
