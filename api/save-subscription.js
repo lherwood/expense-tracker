@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     console.log('DEBUG: p256dh value:', subscription.keys.p256dh, 'Length:', subscription.keys.p256dh.length);
     // Save subscription to Google Apps Script
-    const response = await fetch('https://script.google.com/macros/s/AKfycbyNZf-1-Y0lUMZ4FcDxHrS6DIxFQuhh5kSgoxBGSMT-0Lva6kmfpHkg64YcbAVgwxDWNA/exec', {
+    const response = await fetch('https://script.google.com/macros/s/AKfycbw5g3Y-p2zreXCXcXFUK6iKdqOE7gLBuTgxolnzANGHngYrmxFMM-YFEj1ea1P0R9jTtA/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
